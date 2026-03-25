@@ -9,27 +9,6 @@ import (
 	"testing"
 )
 
-// Mock implementation of repo.Querier
-type mockQuerier struct {
-	mu                     sync.Mutex
-	createEventFn          func(ctx context.Context, params repo.CreateEventParams) (repo.Event, error)
-	listAggregatedEventsFn func(ctx context.Context, userID string) ([]repo.ListAgrregatedEventsRow, error)
-}
-
-func (m *mockQuerier) CreateEvent(ctx context.Context, params repo.CreateEventParams) (repo.Event, error) {
-	if m.createEventFn != nil {
-		return m.createEventFn(ctx, params)
-	}
-	return repo.Event{}, nil
-}
-
-func (m *mockQuerier) ListAgrregatedEvents(ctx context.Context, userID string) ([]repo.ListAgrregatedEventsRow, error) {
-	if m.listAggregatedEventsFn != nil {
-		return m.listAggregatedEventsFn(ctx, userID)
-	}
-	return nil, nil
-}
-
 func TestCreateEvent_Success(t *testing.T) {
 	mock := &mockQuerier{
 		createEventFn: func(ctx context.Context, params repo.CreateEventParams) (repo.Event, error) {
