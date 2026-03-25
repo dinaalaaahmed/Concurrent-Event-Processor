@@ -19,7 +19,8 @@ type svc struct {
 }
 
 func NewService(repo repo.Querier) Service {
-	return &svc{repo: repo}
+	return &svc{repo: repo, stats: make(map[string]map[string]int64)}
+
 }
 
 func (s *svc) ListAgrregatedEvents(ctx context.Context, userID string) (map[string]int64, error) {
