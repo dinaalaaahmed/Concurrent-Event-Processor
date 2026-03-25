@@ -4,12 +4,14 @@ import (
 	"context"
 	"log"
 	repo "my-app/internal/adapters/postgresql/sqlc"
+	"sync"
 	"time"
 )
 
 type CreateEventWorker struct {
 	jobQueue  chan Job
 	processor Service
+	wg        sync.WaitGroup
 }
 
 type Job struct {
@@ -27,9 +29,10 @@ func NewCreateEventWorker(proc Service, bufferSize int) *CreateEventWorker {
 
 func (d *CreateEventWorker) Start(workerCount int) {
 	for i := range workerCount {
+		d.wg.Add(1)
 		go func(workerID int) {
+			defer d.wg.Done()
 			for jobData := range d.jobQueue {
-
 				_, err := d.processor.CreateEvent(context.Background(), jobData.Payload)
 				if err != nil {
 					log.Printf("Worker %d: %v", workerID, err)
