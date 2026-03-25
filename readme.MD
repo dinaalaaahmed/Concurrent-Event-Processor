@@ -19,7 +19,7 @@
   - 2: Run docker compose up
 
   ```
-  docker compose up
+  docker compose up app
   ```
 
 ### To run go test -race
