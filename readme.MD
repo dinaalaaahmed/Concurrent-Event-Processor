@@ -9,45 +9,51 @@
 
 ## How to RUN
 
-- To run Project
+### To run Project
 
-```docker compose up```
+  - 1: Create .env file by copying .env.example and update it's values
 
+  ```cp .env.example .env```
 
-- To run go run -race
+  - 2: Run docker compose up
 
-### 1: Make sure db is running By running following command
-
-``` docker compose up events-processing-postgres```
-
-### 2: In another Terminal run go run -race with the next command
-```
-  docker run --rm -it `
-    --network nahdi-assesment_default `
-    -p 3000:3000 `
-    -v ${PWD}:/app `
-    -w /app `
-    -e CGO_ENABLED=1 `
-    -e DB_DSN="postgres://postgres:mysecretpassword@events-processing-postgres:5432/events-processing?sslmode=disable" `
-    golang:1.25 go run -race ./cmd/...
-```
+  ```docker compose up```
 
 
-### 3: Test concurrent requests with the next curl
+### To run go run -race
 
-```
-for i in {1..100}; do
-  curl -X POST http://localhost:3000/events \
-    -H "Content-Type: application/json" \
-    -d "{
-        \"user_id\": \"user-$i\",
-        \"event_type\": \"click\",
-        \"value\": 1,
-        \"timestamp\": \"$(date -u +"%Y-%m-%dT%H:%M:%SZ")\"
-    }" &
-done
-wait
-```
+  - 1: Make sure db is running By running following command
+
+    ``` docker compose up events-processing-postgres```
+
+  - 2: In another Terminal run go run -race with the next command
+
+    ```
+      docker run --rm -it `
+        --network nahdi-assesment_default `
+        -p 3000:3000 `
+        -v ${PWD}:/app `
+        -w /app `
+        -e CGO_ENABLED=1 `
+        -e DB_DSN="postgres://postgres:mysecretpassword@events-processing-postgres:5432/events-processing?sslmode=disable" `
+        golang:1.25 go run -race ./cmd/...
+    ```
+
+
+  - 3: Test concurrent requests with the next curl
+    ```
+    for i in {1..100}; do
+      curl -X POST http://localhost:3000/events \
+        -H "Content-Type: application/json" \
+        -d "{
+            \"user_id\": \"user-$i\",
+            \"event_type\": \"click\",
+            \"value\": 1,
+            \"timestamp\": \"$(date -u +"%Y-%m-%dT%H:%M:%SZ")\"
+        }" &
+    done
+    wait
+    ```
 
 ## Architecture Overview
 The service follows Clean Architecture principles, ensuring a strict separation of concerns between transport (HTTP), business logic (Service), and data persistence (Repository).
