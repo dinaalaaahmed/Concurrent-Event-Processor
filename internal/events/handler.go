@@ -18,10 +18,10 @@ type handler struct {
 	createEventWorker *CreateEventWorker
 }
 
-func NewHandler(service Service, createEventWorker CreateEventWorker) *handler {
+func NewHandler(service Service, createEventWorker *CreateEventWorker) *handler {
 	return &handler{
 		service:           service,
-		createEventWorker: &createEventWorker,
+		createEventWorker: createEventWorker,
 	}
 }
 
