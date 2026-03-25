@@ -3,6 +3,7 @@ package events
 import (
 	"context"
 	repo "my-app/internal/adapters/postgresql/sqlc"
+	"sync"
 )
 
 type Service interface {
@@ -11,7 +12,9 @@ type Service interface {
 }
 
 type svc struct {
-	repo repo.Querier
+	mu    sync.RWMutex
+	stats map[string]map[string]int64
+	repo  repo.Querier
 }
 
 func NewService(repo repo.Querier) Service {
@@ -19,24 +22,38 @@ func NewService(repo repo.Querier) Service {
 }
 
 func (s *svc) ListAgrregatedEvents(ctx context.Context, userID string) (map[string]int64, error) {
-	rows, err := s.repo.ListAgrregatedEvents(ctx, userID)
-	if err != nil {
-		return nil, err
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	if s.stats[userID] == nil {
+		s.stats[userID] = make(map[string]int64)
+		rows, err := s.repo.ListAgrregatedEvents(ctx, userID)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, row := range rows {
+			s.stats[userID][row.EventType] = row.EventCount
+		}
 	}
 
-	result := make(map[string]int64)
-	for _, row := range rows {
-		result[row.EventType] = row.EventCount
-	}
-
-	return result, nil
+	return s.stats[userID], nil
 }
 
 func (s *svc) CreateEvent(ctx context.Context, params repo.CreateEventParams) (repo.Event, error) {
+
 	event, err := s.repo.CreateEvent(ctx, params)
 	if err != nil {
 		return repo.Event{}, err
 	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if s.stats[params.UserID] == nil {
+		s.stats[params.UserID] = make(map[string]int64)
+	}
+	s.stats[params.UserID][params.EventType] += params.Value
 
 	return event, nil
 }
