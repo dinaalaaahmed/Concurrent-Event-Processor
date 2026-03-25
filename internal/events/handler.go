@@ -30,7 +30,7 @@ func (h *handler) ListAggregatedEvents(w http.ResponseWriter, r *http.Request) {
 
 	aggregatedData, err := h.service.ListAgrregatedEvents(r.Context(), userID)
 	if err != nil {
-		http.Error(w, "Failed to aggregate", http.StatusInternalServerError)
+		http.Error(w, "Failed to return aggregated events", http.StatusInternalServerError)
 		return
 	}
 
@@ -40,7 +40,7 @@ func (h *handler) ListAggregatedEvents(w http.ResponseWriter, r *http.Request) {
 func (h *handler) CreateEvent(w http.ResponseWriter, r *http.Request) {
 	var req requests.CreateEventRequest
 	if err := json.Read(r, &req); err != nil {
-		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		http.Error(w, "Invalid json", http.StatusBadRequest)
 		return
 	}
 
@@ -74,10 +74,9 @@ func (h *handler) CreateEvent(w http.ResponseWriter, r *http.Request) {
 
 	// Send to worker pool
 	if ok := h.createEventWorker.Enqueue(job); !ok {
-		http.Error(w, "Server busy, try again later", http.StatusServiceUnavailable)
+		http.Error(w, "Server is busy, try again later", http.StatusServiceUnavailable)
 		return
 	}
 
-	// Success! The user doesn't wait for the DB.
 	json.Write(w, http.StatusAccepted, map[string]string{"id": job.ID, "status": "queued"})
 }

@@ -1,6 +1,5 @@
 # Concurrent Event Processor using GoLang
 
-
 ## Prerequisites
 - Docker
 
@@ -13,18 +12,24 @@
 
   - 1: Create .env file by copying .env.example and update it's values
 
-  ```cp .env.example .env```
+  ```
+  cp .env.example .env
+  ```
 
   - 2: Run docker compose up
 
-  ```docker compose up```
+  ```
+  docker compose up
+  ```
 
 
 ### To run go run -race
 
   - 1: Make sure db is running By running following command
 
-    ``` docker compose up events-processing-postgres```
+    ``` 
+    docker compose up events-processing-postgres
+    ```
 
   - 2: In another Terminal run go run -race with the next command
 
@@ -65,7 +70,7 @@ The service follows Clean Architecture principles, ensuring a strict separation 
 
 - Worker Pool (Concurrency Manager):
   - A fixed set of goroutines that pull from a buffered Job channel.
-  - Implements Backpressure by rejecting new events when the buffer is full (returning HTTP 429).
+  - Implements Backpressure by rejecting new events when the buffer is full (returning HTTP 503).
 
 - Service Layer:
   - Contains the business logic for calculating statistics.
@@ -80,7 +85,7 @@ The service follows Clean Architecture principles, ensuring a strict separation 
 ### Design Decisions and Trade-offs
 - Concurrency: Worker Pool vs. Goroutine-per-Request
   - Decision: I implemented a fixed-size worker pool with a buffered channel.
-  - Trade-off: While spawning a goroutine per request is easy, it risks crashing the service under a spike (OOM or DB connection exhaustion). The worker pool provides predictable resource limits. I implemented Backpressure using a select statement in the Enqueue method; if the buffer is full, the system returns a 429 Too Many Requests, preserving the health of the existing workers.
+  - Trade-off: While spawning a goroutine per request is easy, it risks crashing the service under a spike (OOM or DB connection exhaustion). The worker pool provides predictable resource limits. I implemented Backpressure using a select statement in the Enqueue method; if the buffer is full, the system returns a 503 Server Not Available, preserving the health of the existing workers.
 
 - Synchronization: in memory map protected with Mutex vs. Quering db for every GET /stats request
   - Decision: I used a sync.RWMutex to protect an in-memory map[string]map[string]int64.
