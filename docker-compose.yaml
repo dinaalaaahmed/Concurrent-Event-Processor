@@ -24,5 +24,22 @@ services:
       depends_on:
         events-processing-postgres:
           condition: service_healthy
+  test:
+    build:
+      context: .
+      target: builder
+    volumes:
+      - .:/app
+    working_dir: /app
+    env_file:
+      - .env
+    environment:
+      - DB_DSN=${DB_DSN}
+      - CGO_ENABLED=1
+    depends_on:
+      events-processing-postgres:
+        condition: service_healthy
+    entrypoint: ""
+    command: go test -race -cover -coverpkg=my-app/internal/events ./internal/tests/events
 volumes:
   postgres-data:

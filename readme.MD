@@ -22,43 +22,47 @@
   docker compose up
   ```
 
+### To run go test -race
+```
+docker compose run --rm test
+```
 
 ### To run go run -race
 
   - 1: Make sure db is running By running following command
 
-    ``` 
-    docker compose up events-processing-postgres
-    ```
+  ``` 
+  docker compose up events-processing-postgres
+  ```
 
   - 2: In another Terminal run go run -race with the next command
 
-    ```
-      docker run --rm -it `
-        --network nahdi-assesment_default `
-        -p 3000:3000 `
-        -v ${PWD}:/app `
-        -w /app `
-        -e CGO_ENABLED=1 `
-        -e DB_DSN="postgres://postgres:mysecretpassword@events-processing-postgres:5432/events-processing?sslmode=disable" `
-        golang:1.25 go run -race ./cmd/...
-    ```
+  ```
+    docker run --rm -it `
+      --network nahdi-assesment_default `
+      -p 3000:3000 `
+      -v ${PWD}:/app `
+      -w /app `
+      -e CGO_ENABLED=1 `
+      -e DB_DSN="postgres://postgres:mysecretpassword@events-processing-postgres:5432/events-processing?sslmode=disable" `
+      golang:1.25 go run -race ./cmd/...
+  ```
 
 
   - 3: Test concurrent requests with the next curl
-    ```
-    for i in {1..100}; do
-      curl -X POST http://localhost:3000/events \
-        -H "Content-Type: application/json" \
-        -d "{
-            \"user_id\": \"user-$i\",
-            \"event_type\": \"click\",
-            \"value\": 1,
-            \"timestamp\": \"$(date -u +"%Y-%m-%dT%H:%M:%SZ")\"
-        }" &
-    done
-    wait
-    ```
+  ```
+  for i in {1..100}; do
+    curl -X POST http://localhost:3000/events \
+      -H "Content-Type: application/json" \
+      -d "{
+          \"user_id\": \"user-$i\",
+          \"event_type\": \"click\",
+          \"value\": 1,
+          \"timestamp\": \"$(date -u +"%Y-%m-%dT%H:%M:%SZ")\"
+      }" &
+  done
+  wait
+  ```
 
 ## Architecture Overview
 The service follows Clean Architecture principles, ensuring a strict separation of concerns between transport (HTTP), business logic (Service), and data persistence (Repository).
