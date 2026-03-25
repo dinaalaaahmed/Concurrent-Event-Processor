@@ -45,7 +45,7 @@ func (app *application) mount() http.Handler {
 	worker := events.NewCreateEventWorker(eventService, bufferSize)
 	worker.Start(workerSize)
 
-	eventHandler := events.NewHandler(eventService, *worker)
+	eventHandler := events.NewHandler(eventService, worker)
 	r.Get("/stats", eventHandler.ListAggregatedEvents)
 	r.Post("/events", eventHandler.CreateEvent)
 
