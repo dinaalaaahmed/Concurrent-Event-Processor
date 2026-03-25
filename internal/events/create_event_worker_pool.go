@@ -50,3 +50,8 @@ func (d *CreateEventWorker) Enqueue(data Job) bool {
 		return false
 	}
 }
+
+func (d *CreateEventWorker) Stop() {
+	close(d.jobQueue)
+	d.wg.Wait()
+}
