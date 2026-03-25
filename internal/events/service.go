@@ -2,6 +2,7 @@ package events
 
 import (
 	"context"
+	"maps"
 	repo "my-app/internal/adapters/postgresql/sqlc"
 	"sync"
 )
@@ -22,8 +23,8 @@ func NewService(repo repo.Querier) Service {
 }
 
 func (s *svc) ListAgrregatedEvents(ctx context.Context, userID string) (map[string]int64, error) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+	s.mu.Lock()
+	defer s.mu.Unlock()
 
 	if s.stats[userID] == nil {
 		s.stats[userID] = make(map[string]int64)
@@ -37,7 +38,10 @@ func (s *svc) ListAgrregatedEvents(ctx context.Context, userID string) (map[stri
 		}
 	}
 
-	return s.stats[userID], nil
+	result := make(map[string]int64)
+	maps.Copy(result, s.stats[userID])
+
+	return result, nil
 }
 
 func (s *svc) CreateEvent(ctx context.Context, params repo.CreateEventParams) (repo.Event, error) {

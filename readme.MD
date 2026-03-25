@@ -63,7 +63,7 @@ The service follows Clean Architecture principles, ensuring a strict separation 
 
 - Service Layer:
   - Contains the business logic for calculating statistics.
-  - Uses a sync.RWMutex to protect an in-memory cache for high-speed reads, ensuring high-speed, thread-safe reads. While this is optimal for a single-node deployment, a horizontally scaled architecture would require a distributed in-memory cache like Redis to maintain data consistency across multiple instances. Additionally, a distributed lock (e.g., via Redis) would replace the local Mutex to prevent data divergence.
+  - Uses a sync.RWMutex to protect an in-memory cache for high-speed reads, ensuring thread-safe reads, and writes to the in-memory cache. While this is optimal for a single-node deployment, a horizontally scaled architecture would require a distributed in-memory cache like Redis to maintain data consistency across multiple instances. Additionally, a distributed lock (e.g., via Redis) would replace the local Mutex to prevent data divergence.
 
 - Data Layer (SQLC/Postgres):
   - Handles persistent storage of events.
@@ -78,7 +78,7 @@ The service follows Clean Architecture principles, ensuring a strict separation 
 
 - Synchronization: in memory map protected with Mutex vs. Quering db for every GET /stats request
   - Decision: I used a sync.RWMutex to protect an in-memory map[string]map[string]int64.
-  - Trade-off: I chose a Read-Write Mutex because the GET /stats endpoint is expected to be read-heavy. RLock() allows multiple concurrent readers to access the stats without blocking each other, which is significantly faster than a standard sync.Mutex or calling the db for every read.
+  - Trade-off: I chose a Read-Write Mutex because the GET /stats endpoint is expected to be read-heavy. which is significantly faster than calling the db for every read.
 
 - Reliability: Graceful Shutdown with WaitGroups
   - Decision: I integrated sync.WaitGroup into the worker lifecycle.
