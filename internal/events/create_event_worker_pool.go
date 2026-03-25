@@ -26,7 +26,7 @@ func NewCreateEventWorker(proc Service, bufferSize int) *CreateEventWorker {
 }
 
 func (d *CreateEventWorker) Start(workerCount int) {
-	for i := 0; i < workerCount; i++ {
+	for i := range workerCount {
 		go func(workerID int) {
 			for jobData := range d.jobQueue {
 

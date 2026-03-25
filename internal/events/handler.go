@@ -28,7 +28,6 @@ func NewHandler(service Service, createEventWorker CreateEventWorker) *handler {
 func (h *handler) ListAggregatedEvents(w http.ResponseWriter, r *http.Request) {
 	userID := r.URL.Query().Get("user_id")
 
-	// Get the map from the service
 	aggregatedData, err := h.service.ListAgrregatedEvents(r.Context(), userID)
 	if err != nil {
 		http.Error(w, "Failed to aggregate", http.StatusInternalServerError)
@@ -39,17 +38,14 @@ func (h *handler) ListAggregatedEvents(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) CreateEvent(w http.ResponseWriter, r *http.Request) {
-	// 2. Decode into the struct that HAS the rules
 	var req requests.CreateEventRequest
 	if err := json.Read(r, &req); err != nil {
 		http.Error(w, "Invalid JSON", http.StatusBadRequest)
 		return
 	}
 
-	// 3. Check the rules
 	validate := validator.New()
 	if err := validate.Struct(req); err != nil {
-		// This will now catch "required" and return an error!
 		http.Error(w, fmt.Sprintf("Validation Error: %s", err.Error()), http.StatusBadRequest)
 		return
 	}
@@ -78,7 +74,6 @@ func (h *handler) CreateEvent(w http.ResponseWriter, r *http.Request) {
 
 	// Send to worker pool
 	if ok := h.createEventWorker.Enqueue(job); !ok {
-		// This happens if the buffer (e.g. 100) is completely full
 		http.Error(w, "Server busy, try again later", http.StatusServiceUnavailable)
 		return
 	}
